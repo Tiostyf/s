@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Book Manager</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f4f4f4;
+    color: #333;
+    display: flex;
+    height: 100vh;
+  }
+  /* Sidebar */
+  .sidebar {
+    width: 70px;
+    background: #111;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+  }
+  .sidebar i {
+    font-size: 1.5rem;
+    margin: 20px 0;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .sidebar i:hover {
+    transform: scale(1.2);
+    color: #ff6600;
+  }
+  /* Main content */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* allow scrolling */
+  }
+  /* Header */
+  header {
+    background: white;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  header h1 {
+    font-size: 1.5rem;
+    color: #ff6600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  header nav button {
+    background: #ff6600;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: background 0.3s;
+  }
+  header nav button:hover {
+    background: #e65c00;
+  }
+
+  /* Featured Book Section (new) */
+  .featured-book {
+    background: white;
+    display: flex;
+    gap: 20px;
+    padding: 16px 24px;
+    margin: 10px 20px 0 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    align-items: center;
+  }
+  .featured-book img {
+    width: 160px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .featured-book-info {
+    flex: 1;
+  }
+  .featured-book-info h2 {
+    margin: 0 0 12px 0;
+    font-size: 1.8rem;
+    color: #ff6600;
+  }
+  .featured-book-info p {
+    margin: 4px 0;
+    font-size: 1.1rem;
+    color: #444;
+  }
+  .featured-book-info .price {
+    margin-top: 10px;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #222;
+  }
+  .featured-book-info .source {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  .featured-book-info .source a {
+    color: #ff6600;
+    text-decoration: none;
+  }
+  .featured-book-info .source a:hover {
+    text-decoration: underline;
+  }
+
+  /* Carousel */
+  .carousel {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    margin: 10px 20px 4px 20px;
+    position: relative;
+  }
+  .carousel-track {
+    display: flex;
+    animation: scroll 12s linear infinite;
+  }
+  .carousel img {
+    width: 100%;
+    flex-shrink: 0;
+  }
+  @keyframes scroll {
+    0% {transform: translateX(0);}
+    100% {transform: translateX(-100%);}
+  }
+  .carousel-credit {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+    margin: 0 10px 10px 0;
+    font-style: italic;
+  }
+  /* Content area */
+  .content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .book-card {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .book-card:hover {
+    transform: translateY(-3px);
+  }
+  .book-card img.book-thumb {
+    width: 84px;
+    height: 112px;
+    object-fit:cover;
+    border-radius:6px;
+    flex-shrink:0;
+    background:#eee;
+  }
+  .book-meta { flex:1 }
+  .book-meta strong { display:block; font-size:1.05rem; margin-bottom:6px }
+  .book-meta .sub { color:#666; margin-bottom:8px }
+  .book-actions { display:flex; gap:8px; align-items:center; }
+  .form-container {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .form-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+  .form-row input[type="text"],
+  .form-row input[type="number"],
+  .form-row input[type="file"]{
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  .form-row input[type="file"]{ padding:6px }
+  input, button {
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background: #ff6600;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #e65c00;
+  }
+  /* Image Gallery */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+    gap: 15px;
+  }
+  .gallery img {
+    width: 100%;
+    border-radius: 8px;
+    transition: transform 0.3s;
+  }
+  .gallery img:hover {
+    transform: scale(1.05);
+  }
+  /* Footer */
+  footer {
+    background: #111;
+    color: white;
+    text-align: center;
+    padding: 10px;
+  }
+  /* Responsive */
+  @media (max-width:720px){
+    .book-card{flex-direction:row; align-items:center}
+    .book-card img.book-thumb{width:64px;height:88px}
+    .form-row{flex-direction:column}
+    .featured-book {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .featured-book img {
+      width: 140px;
+      height: 200px;
+    }
+    .featured-book-info {
+      margin-top: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <i class="fas fa-home" title="Home" onclick="showSection('books')"></i>
+  <i class="fas fa-book" title="Books" onclick="showSection('books')"></i>
+  <i class="fas fa-images" title="Gallery" onclick="showSection('gallery')"></i>
+  <i class="fas fa-newspaper" title="News" onclick="showSection('news')"></i>
+  <i class="fas fa-info-circle" title="About" onclick="showSection('about')"></i>
+</div>
+
+<!-- Main content -->
+<div class="main">
+  <header>
+    <h1>📚 Book Manager</h1>
+    <nav>
+      <button onclick="fetchBooks()">Refresh</button>
+    </nav>
+  </header>
+
+  <!-- Fixed Featured Book -->
+  <section class="featured-book" aria-label="Featured Book">
+    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=160&q=80" alt="Featured Book: The Great Gatsby" />
+    <div class="featured-book-info">
+      <h2>The Great Gatsby</h2>
+      <p><strong>Author:</strong> F. Scott Fitzgerald</p>
+      <p><strong>Description:</strong> A classic novel of the Roaring Twenties, exploring themes of wealth, love, and the American Dream.</p>
+      <p class="price">Price: ₹499</p>
+      <p class="source">Image source: <a href="https://unsplash.com/photos/MP0IUfwrn0A" target="_blank" rel="noreferrer">Unsplash</a> (Free to use)</p>
+    </div>
+  </section>
+
+  <!-- Moving image carousel -->
+  <div class="carousel">
+    <div class="carousel-track">
+      <img src="https://source.unsplash.com/1200x300/?books" alt="Books">
+      <img src="https://source.unsplash.com/1200x300/?library" alt="Library">
+      <img src="https://source.unsplash.com/1200x300/?reading" alt="Reading">
+    </div>
+    <div class="carousel-credit">Images from <a href="https://unsplash.com" target="_blank" rel="noreferrer" style="color:#666; text-decoration:none;">Unsplash</a> - Free to use</div>
+  </div>
+
+  <!-- Books Section -->
+  <div class="content" id="books-section">
+    <div class="form-container">
+      <h3><i class="fas fa-plus-circle"></i> Add Book</h3>
+      <div class="form-row">
+        <input type="text" id="title" placeholder="Title" />
+        <input type="text" id="author" placeholder="Author" />
+        <input type="number" id="price" placeholder="Price" />
+        <input type="file" id="image" accept="image/*" />
+        <button id="addBtn"><i class="fas fa-save"></i> Add</button>
+      </div>
+      <div id="upload-info" style="color:#666;font-size:13px;margin-top:6px;">Image will be sent as Base64 (stored in DB as string).</div>
+    </div>
+    <div id="book-list"></div>
+  </div>
+
+  <!-- Gallery Section -->
+  <div class="content" id="gallery-section" style="display:none;">
+    <h2><i class="fas fa-images"></i> Featured Book Images</h2>
+    <div class="gallery" id="gallery-grid">
+      <!-- filled dynamically -->
+    </div>
+  </div>
+
+  <!-- News Section -->
+  <div class="content" id="news-section" style="display:none;">
+    <h2><i class="fas fa-bolt"></i> Latest News</h2>
+    <div id="news-list">Loading...</div>
+  </div>
+
+  <!-- About Section -->
+  <div class="content" id="about-section" style="display:none;">
+    <h2><i class="fas fa-info-circle"></i> About</h2>
+    <p>This is a stylish book management app connected to a Node.js backend with MongoDB.</p>
+    <ul>
+      <li>📚 Manage your books with ease</li>
+      <li>🌐 Live news integration</li>
+      <li>🎨 Modern responsive design</li>
+    </ul>
+    <img src="https://source.unsplash.com/800x200/?bookstore" style="width:100%;border-radius:8px;" alt="Bookstore">
+  </div>
+
+  <footer>
+    <p>© 2025 Book Manager | Powered by Node.js & MongoDB</p>
+  </footer>
+</div>
+
+<script>
+const API_URL = "http://localhost:5000/api/books";
+const addBtn = document.getElementById('addBtn');
+
+// Helper: read file as base64 (returns Promise)
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve("");
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result); // data:image/...
+    reader.onerror = err => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Switch sections
+function showSection(section) {
+  document.getElementById("books-section").style.display = section === 'books' ? "block" : "none";
+  document.getElementById("gallery-section").style.display = section === 'gallery' ? "block" : "none";
+  document.getElementById("news-section").style.display = section === 'news' ? "block" : "none";
+  document.getElementById("about-section").style.display = section === 'about' ? "block" : "none";
+}
+
+// Fetch Books and render
+async function fetchBooks() {
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error('Failed to fetch');
+    const books = await res.json();
+    renderBooks(books);
+    renderGallery(books);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('book-list').innerHTML = `<p style="color:#c00">Unable to load books.</p>`;
+  }
+}
+
+function renderBooks(books) {
+  const list = document.getElementById("book-list");
+  list.innerHTML = "";
+  books.forEach(book => {
+    // choose image: saved base64 or placeholder
+    const imgSrc = book.image && book.image.length > 10 ? book.image : `https://source.unsplash.com/160x220/?book,${encodeURIComponent(book.title)}`;
+    list.innerHTML += `
+      <div class="book-card">
+        <img class="book-thumb" src="${imgSrc}" alt="${escapeHtml(book.title)}">
+        <div class="book-meta">
+          <strong>${escapeHtml(book.title)}</strong>
+          <div class="sub">by ${escapeHtml(book.author)}</div>
+          <div style="font-weight:700">₹${book.price}</div>
+        </div>
+        <div class="book-actions">
+          <button onclick="deleteBook('${book._id}')" title="Delete" style="background:#e74c3c;padding:8px 10px;border-radius:6px"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function renderGallery(books) {
+  const grid = document.getElementById('gallery-grid');
+  grid.innerHTML = '';
+  books.forEach(b => {
+    if (b.image && b.image.length > 10) {
+      const img = document.createElement('img');
+      img.src = b.image;
+      img.alt = b.title || 'book image';
+      grid.appendChild(img);
+    }
+  });
+}
+
+// Add Book (with image)
+async function addBook() {
+  const title = document.getElementById("title").value.trim();
+  const author = document.getElementById("author").value.trim();
+  const price = document.getElementById("price").value;
+  const imageFile = document.getElementById("image").files[0];
+
+  if (!title || !author || !price) {
+    return alert("Please fill all fields.");
+  }
+
+  // convert image to base64 (if any)
+  let imageBase64 = "";
+  if (imageFile) {
+    // optional: simple file size check (limit ~5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (imageFile.size > maxSize) {
+      return alert("Image too large. Max 5MB.");
+    }
+    try {
+      imageBase64 = await fileToBase64(imageFile);
+    } catch (e) {
+      console.error(e);
+      return alert("Failed to read image.");
+    }
+  }
+
+  const payload = { title, author, price: Number(price), image: imageBase64 };
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Failed to add book");
+    // clear form
+    document.getElementById("title").value = "";
+    document.getElementById("author").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("image").value = "";
+    fetchBooks();
+  } catch (err) {
+    console.error(err);
+    alert("Could not add book (check server).");
+  }
+}
+
+// Delete Book
+async function deleteBook(id) {
+  if (!confirm("Delete this book?")) return;
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Delete failed");
+    fetchBooks();
+  } catch (err) {
+    console.error(err);
+   
+    alert("Could not delete book.");
+  }
+}
+
+// Fetch News from external API
+async function fetchNews() {
+  try {
+    // Using a free news API or dummy data since your API key is placeholder
+    // Replace with your actual API key or endpoint
+    const res = await fetch("https://newsdata.io/api/1/news?apikey=pub_12345&country=us&language=en");
+    if (!res.ok) throw new Error("Failed to fetch news");
+    const data = await res.json();
+    const newsList = document.getElementById("news-list");
+    newsList.innerHTML = "";
+    (data.results || []).slice(0,5).forEach(article => {
+      newsList.innerHTML += `<p>📰 <a href="${article.link}" target="_blank" rel="noreferrer">${escapeHtml(article.title)}</a></p>`;
+    });
+  } catch (e) {
+    console.error(e);
+    document.getElementById("news-list").innerHTML = "<p>⚠️ Unable to fetch news right now.</p>";
+  }
+}
+
+// small helper to escape HTML
+function escapeHtml(s){ 
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;'); 
+}
+
+addBtn.addEventListener('click', addBook);
+
+// initial load
+fetchBooks();
+fetchNews();
+</script>
+
+</body>
+</html>
